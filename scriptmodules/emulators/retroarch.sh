@@ -71,9 +71,8 @@ function build_retroarch() {
 
 function install_retroarch() {
     make install
-    md_ret_files=(
-        'retroarch.cfg'
-    )
+    # md_ret_files removed — make install already places everything in $md_inst
+    # The original md_ret_files=('retroarch.cfg') was deleting the binary after install
 }
 
 function update_shaders_retroarch() {
