@@ -1,0 +1,52 @@
+name: CI - install.sh SmartPi natif
+
+on:
+  workflow_dispatch:
+
+jobs:
+  install-native:
+    runs-on: [self-hosted, Linux, ARM, yumi-fr]
+    name: install.sh natif armhf SmartPi One H3
+
+    steps:
+      - name: System info
+        run: |
+          uname -m
+          grep PRETTY_NAME /etc/os-release
+          free -h
+          df -h /
+
+      - name: Cleanup previous install
+        run: |
+          sudo rm -rf /opt/retropie /home/pi/RetroPie /home/pi/RetroPie-Setup || true
+
+      - name: Run install.sh
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/Yumi-Lab/YUMI-RETROPIE/main/install.sh | sudo bash 2>&1 | tee /tmp/install.log
+
+      - name: Validation
+        run: |
+          echo "--- EmulationStation ---"
+          ls -lh /opt/retropie/supplementary/emulationstation/emulationstation 2>/dev/null || echo "MISSING"
+
+          echo "--- RetroArch ---"
+          ls -lh /opt/retropie/emulators/retroarch/bin/retroarch 2>/dev/null || echo "MISSING"
+
+          echo "--- libretro cores count ---"
+          find /opt/retropie/libretrocores -name "*.so" 2>/dev/null | wc -l
+
+          echo "--- ROM directories ---"
+          ls /home/pi/RetroPie/roms/ 2>/dev/null | head -20
+
+          echo "--- es_systems.cfg ---"
+          [ -f /etc/emulationstation/es_systems.cfg ] && echo "OK" || echo "MISSING"
+
+          echo "--- OpenBOR ---"
+          ls /opt/retropie/ports/openbor/ 2>/dev/null || echo "not installed"
+
+      - name: Upload install log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-log-smartpi
+          path: /tmp/install.log
