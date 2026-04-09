@@ -26,18 +26,18 @@ function sources_openbor() {
 }
 
 function build_openbor() {
+    # linux.cmake uses set() (local var) which overrides cmake -D cache flags.
+    # Patch directly to disable OpenGL and WebM for Mali-400 / embedded targets.
+    sed -i \
+        -e 's/set(USE_OPENGL\s*ON)/set(USE_OPENGL OFF)/' \
+        -e 's/set(USE_LOADGL\s*ON)/set(USE_LOADGL OFF)/' \
+        -e 's/set(USE_WEBM\s*ON)/set(USE_WEBM OFF)/' \
+        cmake/linux.cmake
+
     rm -rf build
     mkdir build
     cd build
-    cmake .. \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DBUILD_LINUX=ON \
-        -DUSE_SDL=ON \
-        -DUSE_OPENGL=OFF \
-        -DUSE_LOADGL=OFF \
-        -DUSE_WEBM=OFF \
-        -DUSE_VORBIS=ON \
-        -DUSE_PTHREAD=ON
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_LINUX=ON
     make -j"$(nproc)"
     md_ret_require="$md_build/engine/releases/LINUX/OpenBOR"
 }
